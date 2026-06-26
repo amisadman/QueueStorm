@@ -5,6 +5,7 @@ Thumbs.db
 # Editor settings
 .vscode/
 .idea/
+__pycache__/
 *.swp
 *.swo
 
@@ -31,3 +32,7 @@ cmd/server/tmp/
 # Logs
 *.log
 
+# Repo-specific ignores
+test_cases.py
+load_test.py
+SUST_Preli_Sample_Cases.json
