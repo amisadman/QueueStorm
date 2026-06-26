@@ -6,38 +6,42 @@ It analyzes customer complaints alongside transaction history, determines the mo
 ## Architecture
 
 ```mermaid
-flowchart LR
-    J[Judge harness<br/>Sends ticket data] <--> A[API layer<br/>Validates and parses request]
-    A --> Q[Worker pool<br/>Controls concurrency and timeouts]
-    Q --> T1[Tier 1: Deterministic fact engine<br/>Extracts txn facts and verdict inputs]
-    T1 --> T2[Tier 2: LLM reasoning<br/>Calls external AI API]
-    T2 <--> L[LLM provider<br/>Gemini / Groq / fallback]
-    T2 --> S[Safety filter<br/>Rewrites unsafe replies]
-    S --> O[JSON response<br/>Schema-compliant output]
-
-    subgraph T["Your service<br/>Echo app in one container"]
-        A
-        Q
-        T1
-        T2
-        S
-        O
-    end
+graph TD
+    A[POST /analyze-ticket] --> B[Request Validation & Sanitization]
+    B --> C["Internal Worker Queue / Concurrency Controller"]
+    C --> D[Analysis Pipeline]
+    D --> E[Tier 1: Deterministic Rule & Entity Extraction Engine]
+    E --> F{Primary LLM Configured & Healthy?}
+    F -- "Yes" --> G[Tier 2a: Primary LLM Gemini]
+    F -- "No/Fail" --> H{Backup 1 LLM Configured & Healthy?}
+    H -- "Yes" --> I[Tier 2b: Backup 1 LLM Gemini]
+    H -- "No/Fail" --> J{Backup 2 LLM Configured & Healthy?}
+    J -- "Yes" --> K[Tier 2c: Backup 2 LLM Groq]
+    J -- "No/Fail/Timeout" --> L["Tier 3: API Error Handler (HTTP 500)"]
+    G --> M[Output Consolidation]
+    I --> M[Output Consolidation]
+    K --> M[Output Consolidation]
+    L --> N[HTTP Error Response]
+    M --> O[Strict Safety Guardrails & Post-Processing Layer]
+    O --> P[JSON Output]
 ```
 
 ### Request flow
 
-1. The **judge harness** sends ticket data to the service.
-2. The **API layer** validates the request and rejects malformed input early.
-3. The **worker pool** keeps concurrency under control and applies request timeouts.
-4. **Tier 1** deterministically extracts transaction facts and identifies the likely match.
-5. **Tier 2** calls the external AI provider to draft the explanation and reply.
-6. The **safety filter** rewrites unsafe output before the final JSON response is returned.
+1. `POST /analyze-ticket` receives the ticket payload.
+2. The **request validation** layer sanitizes and checks the input.
+3. The **internal worker queue** controls concurrency and request timeouts.
+4. **Tier 1** extracts entities and deterministic facts from the complaint and transaction history.
+5. **Tier 2** tries Gemini first, then Gemini backup, then Groq as the final model tier.
+6. If all model tiers fail, the service returns an **HTTP 500** error.
+7. The **safety layer** rewrites risky output before the final JSON response is returned.
 
 ### Tier breakdown
 
-- **Tier 1 — Deterministic Go engine:** extracts amounts, transaction IDs, and evidence signals without an API call.
-- **Tier 2 — LLM reasoning:** sends the structured context to an external AI API for the human-facing fields.
+- **Tier 1 — Deterministic Go engine:** extracts amounts, transaction IDs, entity matches, and evidence signals without an API call.
+- **Tier 2a — Gemini primary:** generates the first-pass natural-language output.
+- **Tier 2b — Gemini backup:** handles fallback generation if the primary model is unavailable.
+- **Tier 2c — Groq backup:** final model fallback before returning an API error.
 - **Safety layer:** rewrites risky content before returning the JSON response.
 
 ## Key capabilities

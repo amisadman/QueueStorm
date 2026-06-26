@@ -36,11 +36,14 @@ Each implementation follows the same overall pipeline:
 flowchart TB
     subgraph E["Echo version"]
         E1[Go + Echo]
-        E2[Worker pool and timeout control]
-        E3[Tier 1 deterministic facts]
-        E4[Tier 2 AI API call]
-        E5[Safety filter]
-        E1 --> E2 --> E3 --> E4 --> E5
+        E2[Request validation and sanitization]
+        E3[Internal worker queue]
+        E4[Tier 1 deterministic rule engine]
+        E5[Tier 2a Gemini primary]
+        E6[Tier 2b Gemini backup]
+        E7[Tier 2c Groq backup]
+        E8[Safety filter and JSON response]
+        E1 --> E2 --> E3 --> E4 --> E5 --> E6 --> E7 --> E8
     end
 
     subgraph F["FastAPI version"]
@@ -59,7 +62,7 @@ flowchart TB
 | Framework | Echo | FastAPI |
 | Best for | Maximum concurrency and a compact service | Fast iteration and simple API hosting |
 | Request validation | Strong typed structs | Pydantic models |
-| AI integration | External LLM provider calls | External LLM provider calls |
+| AI integration | Gemini primary, Gemini backup, Groq fallback | External LLM provider calls |
 | Safety handling | Output rewriting / guardrails | Output rewriting / guardrails |
 
 ## Which One Should You Use?
@@ -106,4 +109,3 @@ Both implementations are designed to:
 - The live deployment links are listed above for quick testing.
 - Each service can be deployed independently.
 - Update environment variables in your hosting platform before going live.
-
