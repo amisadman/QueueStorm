@@ -1,0 +1,33 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Go build artifacts
+bin/
+tmp/
+**/tmp/
+*.exe
+*.test
+*.out
+*.prof
+coverage.out
+
+# Local binaries
+server.exe
+test_runner.exe
+cmd/server/tmp/
+
+# Logs
+*.log
+
