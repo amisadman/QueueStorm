@@ -237,102 +237,81 @@ def _normalize_response_data(data: Dict[str, Any], request_model: AnalyzeTicketR
 	}
 
 
-# def _call_groq(request_model: AnalyzeTicketRequest) -> Dict[str, Any]:
-# 	if not GROQ_API_KEY:
-# 		raise HTTPException(status_code=500, detail="Model API key is not configured.")
-
-# 	request_payload = _request_model_to_dict(request_model)
-# 	user_prompt = "Analyze this ticket and return a JSON object that matches the required schema exactly.\n\nInput JSON:\n" + json.dumps(request_payload, ensure_ascii=False)
-# 	body = {
-# 		"model": GROQ_MODEL,
-# 		"messages": [
-# 			{
-# 				"role": "system",
-# 				"content": SYSTEM_PROMPT,
-# 			},
-# 			{
-# 				"role": "user",
-# 				"content": user_prompt,
-# 			},
-# 		],
-# 		"temperature": 0,
-# 		"max_completion_tokens": 800,
-# 		"response_format": {
-# 			"type": "json_schema",
-# 			"json_schema": {
-# 				"name": "analyze_ticket_response",
-# 				"strict": True,
-# 				"schema": RESPONSE_SCHEMA,
-# 			},
-# 		},
-# 	}
-
-# 	url = "https://api.groq.com/openai/v1/chat/completions"
-# 	request_bytes = json.dumps(body).encode("utf-8")
-# 	http_request = UrlRequest(
-# 		url,
-# 		data=request_bytes,
-# 		headers={
-#             "Content-Type": "application/json", 
-#             "Authorization": f"Bearer {GROQ_API_KEY}",
-#             "User-Agent": "Mozilla/5.0"  # <--- Add this header
-#         },
-# 		method="POST",
-# 	)
-
-# 	try:
-# 		with urlopen(http_request, timeout=GROQ_TIMEOUT_SECONDS) as response:
-# 			response_body = response.read().decode("utf-8")
-			
-# 	except HTTPError as error:
-# 		body = error.read().decode("utf-8", errors="ignore")
-# 		raise HTTPException(status_code=500, detail=body)
-		
-# 	except URLError as error:
-# 		raise HTTPException(status_code=500, detail=str(error))
-		
-# 	except Exception as error:
-# 		raise HTTPException(status_code=500, detail=str(error))
-
-# 	try:
-# 		response_json = json.loads(response_body)
-# 		choices = response_json.get("choices") or []
-# 		if not choices:
-# 			raise ValueError("Missing choices")
-# 		message = choices[0].get("message", {})
-# 		text = message.get("content", "")
-# 		if not isinstance(text, str):
-# 			text = ""
-# 		if not text.strip():
-# 			raise ValueError("Missing model JSON")
-# 		parsed = json.loads(text)
-# 		if not isinstance(parsed, dict):
-# 			raise ValueError("Model output was not a JSON object")
-# 		return parsed
-# 	except (json.JSONDecodeError, ValueError, TypeError) as error:
-# 		raise HTTPException(status_code=500, detail="Model response was invalid.") from error
-
-
 def _call_groq(request_model: AnalyzeTicketRequest) -> Dict[str, Any]:
-    # --- MOCK FOR LOAD TESTING ---
-    # Simulate network delay to Groq
-    time.sleep(1.5) 
-    
-    # Return a static valid response
-    return {
-        "relevant_transaction_id": "TXN-123",
-        "evidence_verdict": "consistent",
-        "case_type": "wrong_transfer",
-        "severity": "high",
-        "department": "dispute_resolution",
-        "agent_summary": "Mock summary for load testing.",
-        "recommended_next_action": "Mock action.",
-        "customer_reply": "Mock reply.",
-        "human_review_required": True,
-        "confidence": 0.9,
-        "reason_codes": ["mock_code"]
-    }
-    # -----------------------------
+	if not GROQ_API_KEY:
+		raise HTTPException(status_code=500, detail="Model API key is not configured.")
+
+	request_payload = _request_model_to_dict(request_model)
+	user_prompt = "Analyze this ticket and return a JSON object that matches the required schema exactly.\n\nInput JSON:\n" + json.dumps(request_payload, ensure_ascii=False)
+	body = {
+		"model": GROQ_MODEL,
+		"messages": [
+			{
+				"role": "system",
+				"content": SYSTEM_PROMPT,
+			},
+			{
+				"role": "user",
+				"content": user_prompt,
+			},
+		],
+		"temperature": 0,
+		"max_completion_tokens": 800,
+		"response_format": {
+			"type": "json_schema",
+			"json_schema": {
+				"name": "analyze_ticket_response",
+				"strict": True,
+				"schema": RESPONSE_SCHEMA,
+			},
+		},
+	}
+
+	url = "https://api.groq.com/openai/v1/chat/completions"
+	request_bytes = json.dumps(body).encode("utf-8")
+	http_request = UrlRequest(
+		url,
+		data=request_bytes,
+		headers={
+            "Content-Type": "application/json", 
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "User-Agent": "Mozilla/5.0"  # <--- Add this header
+        },
+		method="POST",
+	)
+
+	try:
+		with urlopen(http_request, timeout=GROQ_TIMEOUT_SECONDS) as response:
+			response_body = response.read().decode("utf-8")
+			
+	except HTTPError as error:
+		body = error.read().decode("utf-8", errors="ignore")
+		raise HTTPException(status_code=500, detail=body)
+		
+	except URLError as error:
+		raise HTTPException(status_code=500, detail=str(error))
+		
+	except Exception as error:
+		raise HTTPException(status_code=500, detail=str(error))
+
+	try:
+		response_json = json.loads(response_body)
+		choices = response_json.get("choices") or []
+		if not choices:
+			raise ValueError("Missing choices")
+		message = choices[0].get("message", {})
+		text = message.get("content", "")
+		if not isinstance(text, str):
+			text = ""
+		if not text.strip():
+			raise ValueError("Missing model JSON")
+		parsed = json.loads(text)
+		if not isinstance(parsed, dict):
+			raise ValueError("Model output was not a JSON object")
+		return parsed
+	except (json.JSONDecodeError, ValueError, TypeError) as error:
+		raise HTTPException(status_code=500, detail="Model response was invalid.") from error
+
 
 @app.get("/health")
 def health() -> Dict[str, str]:

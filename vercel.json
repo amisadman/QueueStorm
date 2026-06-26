@@ -1,0 +1,14 @@
+{
+  "builds": [
+    {
+      "src": "QueueStorm_FastApi/app/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "QueueStorm_FastApi/app/main.py"
+    }
+  ]
+}
