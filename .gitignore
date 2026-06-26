@@ -14,7 +14,7 @@ __pycache__/
 .env.*
 !.env.example
 
-# Go build artifacts
+# Generated / local artifacts
 bin/
 tmp/
 **/tmp/
@@ -23,16 +23,17 @@ tmp/
 *.out
 *.prof
 coverage.out
+*.log
 
 # Local binaries
 server.exe
 test_runner.exe
 cmd/server/tmp/
 
-# Logs
-*.log
-
 # Repo-specific ignores
+*.txt
+*.json
+*.pdf
 test_cases.py
 load_test.py
 SUST_Preli_Sample_Cases.json
