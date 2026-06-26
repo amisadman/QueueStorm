@@ -119,31 +119,3 @@ Example:
   ]
 }
 ```
-
-## Deployment options
-
-### Vercel
-
-This repo already includes `vercel.json`, so Vercel is the fastest option if you want a simple serverless deployment.
-
-### Render / Railway / Fly.io
-
-These are good choices if you want the app to run as a normal web service or inside a container.
-
-### Docker
-
-If you prefer containers, add a `Dockerfile` in this folder and deploy the image anywhere that supports Python containers.
-
-## Safety behavior
-
-The app includes a reply sanitizer that:
-
-- blocks requests for PIN, OTP, password, and card details
-- rewrites direct refund promises into safer wording
-- avoids unofficial or third-party contact instructions
-
-## Notes
-
-- Keep the complaint and transaction history in the request body.
-- Return only schema-compliant JSON from the analysis endpoint.
-- Use the `/docs` page during development to inspect request/response shapes quickly.

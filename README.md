@@ -56,14 +56,14 @@ flowchart TB
     end
 ```
 
-| Area | Echo | FastAPI |
-| --- | --- | --- |
-| Language | Go | Python |
-| Framework | Echo | FastAPI |
-| Best for | Maximum concurrency and a compact service | Fast iteration and simple API hosting |
-| Request validation | Strong typed structs | Pydantic models |
-| AI integration | Gemini primary, Gemini backup, Groq fallback | External LLM provider calls |
-| Safety handling | Output rewriting / guardrails | Output rewriting / guardrails |
+| Area               | Echo                                         | FastAPI                               |
+| ------------------ | -------------------------------------------- | ------------------------------------- |
+| Language           | Go                                           | Python                                |
+| Framework          | Echo                                         | FastAPI                               |
+| Best for           | Maximum concurrency and a compact service    | Fast iteration and simple API hosting |
+| Request validation | Strong typed structs                         | Pydantic models                       |
+| AI integration     | Gemini primary, Gemini backup, Groq fallback | External LLM provider calls           |
+| Safety handling    | Output rewriting / guardrails                | Output rewriting / guardrails         |
 
 ## Which One Should You Use?
 
@@ -94,18 +94,3 @@ python -m venv .venv
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
-
-## Safety Notes
-
-Both implementations are designed to:
-
-- avoid unsafe credential requests
-- avoid direct refund promises
-- keep users on official support channels
-- return clean JSON for downstream automation
-
-## Deployment Notes
-
-- The live deployment links are listed above for quick testing.
-- Each service can be deployed independently.
-- Update environment variables in your hosting platform before going live.

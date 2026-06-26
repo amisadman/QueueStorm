@@ -135,25 +135,3 @@ Example request:
   ]
 }
 ```
-
-## Deployment options
-
-- **Docker**: best for portable deployment
-- **Render**: quick GitHub-connected deploy
-- **Railway**: fast setup with simple environment variables
-- **Fly.io**: good for small container-based services
-
-## Safety rules
-
-The response sanitizer is designed to:
-
-- block requests for PIN, OTP, password, and card details
-- avoid promising direct refunds or reversals
-- keep customers on official support channels
-- rewrite risky reply text before it reaches the user
-
-## Notes
-
-- The service is designed to return valid JSON only.
-- Keep the complaint and transaction history in the same request.
-- For production, store secrets in environment variables rather than committing them.
