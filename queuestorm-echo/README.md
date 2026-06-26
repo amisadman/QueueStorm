@@ -9,15 +9,17 @@ It analyzes customer complaints alongside transaction history, determines the mo
 flowchart LR
     J[Judge harness<br/>Sends ticket data] <--> A[API layer<br/>Validates and parses request]
     A --> Q[Worker pool<br/>Controls concurrency and timeouts]
-    Q --> R[Reasoning engine<br/>Extracts facts and builds verdict]
-    R <--> L[LLM provider<br/>AI API call]
-    R --> S[Safety filter<br/>Rewrites unsafe replies]
+    Q --> T1[Tier 1: Deterministic fact engine<br/>Extracts txn facts and verdict inputs]
+    T1 --> T2[Tier 2: LLM reasoning<br/>Calls external AI API]
+    T2 <--> L[LLM provider<br/>Gemini / Groq / fallback]
+    T2 --> S[Safety filter<br/>Rewrites unsafe replies]
     S --> O[JSON response<br/>Schema-compliant output]
 
     subgraph T["Your service<br/>Echo app in one container"]
         A
         Q
-        R
+        T1
+        T2
         S
         O
     end
@@ -28,9 +30,15 @@ flowchart LR
 1. The **judge harness** sends ticket data to the service.
 2. The **API layer** validates the request and rejects malformed input early.
 3. The **worker pool** keeps concurrency under control and applies request timeouts.
-4. The **reasoning engine** resolves the case facts and prepares the verdict.
-5. The **LLM provider** generates the natural-language fields when needed.
+4. **Tier 1** deterministically extracts transaction facts and identifies the likely match.
+5. **Tier 2** calls the external AI provider to draft the explanation and reply.
 6. The **safety filter** rewrites unsafe output before the final JSON response is returned.
+
+### Tier breakdown
+
+- **Tier 1 — Deterministic Go engine:** extracts amounts, transaction IDs, and evidence signals without an API call.
+- **Tier 2 — LLM reasoning:** sends the structured context to an external AI API for the human-facing fields.
+- **Safety layer:** rewrites risky content before returning the JSON response.
 
 ## Key capabilities
 
